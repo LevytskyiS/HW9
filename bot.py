@@ -1,31 +1,67 @@
-def exit_func():
+def exit_func(args):
     return 'Good bye!'
+    
+def greeting(args):
+    return 'How can I help you? '
 
-def greeting():
-    return 'How can I help you?' 
+def contact_book(args):
 
-def contact_book():
-    return contacts
+    full_list = []
 
+    for key, value in contacts.items():
+        res = '{name} - {phone}'.format(name = key, phone = value)
+        full_list.append(res)
+    
+    all_list = '\n'.join(full_list)
+    
+    return all_list
+
+
+def input_error(func):
+    def inner(args):
+        try:
+            return func(args)
+        except IndexError:
+            print('You also need to write a number.')
+            main()
+        except ValueError:
+            print('This name is not in the contact book.')
+            main()
+        except NameError:
+            print('There is no name.')
+            main()
+    return inner
+    
+
+@input_error 
 def new_contact(new_contact):
-    try:
-        contacts[new_contact[0].capitalize()] = int(new_contact[1])
-    except ValueError:
-        print('There is no number.')
+    contacts[new_contact[0].capitalize()] = int(new_contact[1])
+    return new_contact
 
+@input_error 
 def change_contact(changes):
-    contacts[changes[0].capitalize()] = changes[1]
+    if changes[0].capitalize() in contacts.keys():
+        contacts[changes[0].capitalize()] = changes[1]
 
-def phone_number(contact_name):
+@input_error 
+def phone_number(args):
+    return contacts.get(args[0].capitalize())
 
-    if contact_name.lower() in contacts.keys() or contact_name.capitalize() in contacts.keys():
-        res = contacts.get(contact_name.capitalize())
-        print(res)
-        return res
-    else:
-        print('Name not found.')
+def parse_string(string: str):
+	func = None
+	args = None
+	strings = string.strip()
+	strings_lower = string.strip().lower()
+	for key in FUNCTIONS:
+		if strings_lower.startswith(key):
+			func = key
+			args = strings.replace(strings[:len(key)], '').strip().split()
+			return FUNCTIONS[func](args)
+	return func, args
 
-user_commands = {
+contacts = {'Anna' : 456}
+
+FUNCTIONS = {
     'hello' : greeting, 
     'add' : new_contact,
     'change' : change_contact,
@@ -36,47 +72,20 @@ user_commands = {
     'close' : exit_func
 }
 
-contacts = {'Anna' : 852}
-
-def get_handler(cmd):
-
-    if isinstance(cmd, list):
-        if len(cmd) > 2:
-            return user_commands[cmd[0]](cmd[1 : ]) # для команд 'add', 'change'
-        elif len(cmd) == 2:
-            return user_commands[cmd[0]](cmd[1]) # для команди 'phone'
-    else:
-        return user_commands[cmd]() # для команд 'hello', 'exit', 'close', 'good bye', 'show all'
-
-
 def main():
-    while True: 
-        user_input = input('Enter the command: ').lower()
 
-        if user_input in user_commands.keys():
-            if user_input == 'good bye' or user_input == 'exit' or user_input == 'close':
-                print(get_handler(user_input))
-                exit()
-                
-            if user_input == 'show all':
-                print(get_handler(user_input))
-            
-            if user_input == 'hello':
-                print(get_handler(user_input))
- 
+    while True:
+
+        user_input = input('Enter a command: ')
+
+        if parse_string(user_input) == None:
+            continue
+        elif parse_string(user_input) == 'Good bye!':
+            print(parse_string(user_input))
+            exit()
         else:
-            user_com_list = user_input.strip().split()
+            print(parse_string(user_input))
 
-            for key in user_commands.keys():
-                    
-                if len(user_com_list) == 3 and user_com_list[0] == key: # для команд 'add', 'change'
-                    get_handler(user_com_list)
-                    
-                elif len(user_com_list) == 2 and user_com_list[0] == key: # для команди 'phone'
-                    get_handler(user_com_list)
-                    
-                else:
-                    continue
 
 if __name__ == '__main__':
     main()
