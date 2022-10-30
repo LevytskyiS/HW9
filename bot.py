@@ -1,65 +1,52 @@
-def exit_func(args):
-    return 'Good bye!'
-    
-def greeting(args):
+def decor(func):
+    def wrapper(arg):
+        try:
+            return func(arg)
+        except IndexError:
+            return 'There is no phone number. Enter name and phone.' # If user didn`t put the number, only name.
+        except ValueError: 
+            return 'Number must contain only numbers.' # If number contains letters
+        except KeyError:
+            return 'Wrong command. Try again.' # This command is not in the dictionary with commands. 
+
+    return wrapper
+
+@decor 
+def greeting(greet):
     return 'How can I help you? '
 
-def contact_book(args):
+@decor
+def exit_func(bye):
+    return 'Good bye!'
+
+@decor
+def contact_book(show_all):
 
     full_list = []
-
-    for key, value in contacts.items():
+    for key, value in all_contact.items():
         res = '{name} - {phone}'.format(name = key, phone = value)
         full_list.append(res)
-    
     all_list = '\n'.join(full_list)
-    
     return all_list
 
+@decor
+def new_contact(list_name_number : list):
+    all_contact[list_name_number[0].capitalize()] = int(list_name_number[1])
 
-def input_error(func):
-    def inner(args):
-        try:
-            return func(args)
-        except IndexError:
-            print('You also need to write a number.')
-            main()
-        except ValueError:
-            print('This name is not in the contact book.')
-            main()
-        except NameError:
-            print('There is no name.')
-            main()
-    return inner
-    
+@decor
+def change_contact(list_available_name_and_new_number: list):
+    if list_available_name_and_new_number[0].capitalize() in all_contact:
+        all_contact[list_available_name_and_new_number[0].capitalize()] = int(list_available_name_and_new_number[1])
+    else:
+        return 'Name not found.'
 
-@input_error 
-def new_contact(new_contact):
-    contacts[new_contact[0].capitalize()] = int(new_contact[1])
-    return new_contact
+@decor 
+def phone_number(name_in_book: list):
+    if name_in_book[0].capitalize() in all_contact.keys():
+        return all_contact.get(name_in_book[0].capitalize())
+    else:
+        return 'This name is not found in your contacts.'
 
-@input_error 
-def change_contact(changes):
-    if changes[0].capitalize() in contacts.keys():
-        contacts[changes[0].capitalize()] = changes[1]
-
-@input_error 
-def phone_number(args):
-    return contacts.get(args[0].capitalize())
-
-def parse_string(string: str):
-	func = None
-	args = None
-	strings = string.strip()
-	strings_lower = string.strip().lower()
-	for key in FUNCTIONS:
-		if strings_lower.startswith(key):
-			func = key
-			args = strings.replace(strings[:len(key)], '').strip().split()
-			return FUNCTIONS[func](args)
-	return func, args
-
-contacts = {'Anna' : 456}
 
 FUNCTIONS = {
     'hello' : greeting, 
@@ -69,23 +56,37 @@ FUNCTIONS = {
     'show all' : contact_book,
     'good bye' : exit_func,
     'exit' : exit_func,
-    'close' : exit_func
+    'close' : exit_func,
 }
 
-def main():
+all_contact = {'Anna' : 321} # Key and value were added for testing
 
-    while True:
+@decor
+def handle(inp_by_user : str):
 
-        user_input = input('Enter a command: ')
+    inp_by_user = inp_by_user.lower().split()
+    if ' '.join(inp_by_user[0:2]) == 'show all' or ' '.join(inp_by_user[0:2]) == 'good bye':
+        func = ' '.join(inp_by_user[0:2])
+    else:
+        func = inp_by_user[0]
+    args = inp_by_user[1:]
+    
+    if len(inp_by_user) == 1:
+        return FUNCTIONS[func](args)
 
-        if parse_string(user_input) == None:
-            continue
-        elif parse_string(user_input) == 'Good bye!':
-            print(parse_string(user_input))
-            exit()
-        else:
-            print(parse_string(user_input))
+    elif func == 'show all' or func == 'good bye':
+        return FUNCTIONS[func](args)
 
+    elif len(inp_by_user) == 2 or len(inp_by_user) > 2:
+        return FUNCTIONS[func](args)
 
-if __name__ == '__main__':
-    main()
+while True:
+    
+    user_input = input('Enter the command: ')
+    user_handler = handle(user_input)
+    
+    if user_handler == 'Good bye!':
+        print(user_handler)
+        exit()
+    elif user_handler:
+        print(user_handler)
