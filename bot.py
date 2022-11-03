@@ -12,22 +12,16 @@ def decor(func):
     return wrapper
 
 @decor 
-def greeting(greet):
+def greeting(*_):
     return 'How can I help you? '
 
 @decor
-def exit_func(bye):
+def exit_func(*_):
     return 'Good bye!'
 
 @decor
-def contact_book(show_all):
-
-    full_list = []
-    for key, value in all_contact.items():
-        res = '{name} - {phone}'.format(name = key, phone = value)
-        full_list.append(res)
-    all_list = '\n'.join(full_list)
-    return all_list
+def contact_book(*_):
+    return '\n'.join(f'{k} - {v}' for k, v in all_contact.items())
 
 @decor
 def new_contact(list_name_number : list):
